@@ -33,7 +33,14 @@ def esymm (n : ℕ) (k : ℕ) (x : ℕ → ℝ): ℝ := ∑ A in set_binom n k, 
 /-- S_{n,0}(x)=1 -/
 @[simp]
 lemma esymm_zero_eq_one (n : ℕ) (x : ℕ → ℝ) : esymm n 0 x = 1 := by
-  simp [esymm, set_binom]
+  /-
+  Original:
+    simp [esymm, set_binom]
+
+  LLM-aesop:
+  -/
+  simp [esymm]
+  simp [set_binom]
 
 /-- S_{n,k}(x)=0 if k>n -/
 lemma esymm_eq_zero {n k : ℕ} (x : ℕ → ℝ) (h : n < k) : esymm n k x = 0 := by
@@ -42,6 +49,12 @@ lemma esymm_eq_zero {n k : ℕ} (x : ℕ → ℝ) (h : n < k) : esymm n k x = 0 
 
 /-- S_{n,n}(x) = \prod_{i=0}^{n-1} x_i -/
 lemma esymm_prod (n : ℕ) (x: ℕ → ℝ): esymm n n x = ∏ i in range n, x i := by
+  /-
+  Original:
+    simp [esymm]
+
+  LLM-aesop:
+  -/
   simp [esymm]
   -- Note how this proof benefits from the added simp lemma `set_binom_self`
 
@@ -86,7 +99,13 @@ theorem esymm_pascal (n : ℕ) (k : ℕ) (x : ℕ → ℝ) :
   apply sum_congr rfl
   intro A hA
   rw [prod_insert (set_binom_no_n hA)]
-  ring
+  /-
+  Original:
+    ring
+
+  LLM-aesop:
+  -/
+  rw [mul_comm]
 
 /-- S_{n,1}(x) = \sum_{i=0}^{n-1} x_i -/
 lemma esymm_sum (n : ℕ) (x: ℕ → ℝ): esymm n 1 x = ∑ i in range n, x i := by
@@ -103,4 +122,13 @@ lemma esymm_pos (n k : ℕ) (x: ℕ → ℝ) (h1: k ≤ n) (h2: ∀ i ∈ range 
     . intro i hi
       exact h2 i (set_binom_subset hA hi)
   use range k
-  simpa [set_binom, mem_powersetLen]
+  /-
+  Original:
+    simpa [set_binom, mem_powersetCard]
+
+  LLM-aesop:
+  -/
+  simp_all only [mem_range]
+  simp [set_binom, h1]
+  rw [mem_powersetCard]
+  simp_all only [range_subset, card_range, and_self]

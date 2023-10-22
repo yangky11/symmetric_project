@@ -13,7 +13,6 @@ import SymmetricProject.esymm_basic
 import SymmetricProject.esymm_generating
 import SymmetricProject.attainable
 
-
 /-! The purpose of this file is to establish [Theorem 1.3 of the paper].
 -/
 
@@ -78,7 +77,7 @@ theorem new_inequality (n l : ℕ) (s : ℕ → ℝ) (r : ℝ) (h1: attainable n
   rcases h5 with ⟨x, h5⟩
 
   have h7a := esymm_prod l x
-  simp [h5 l (by observe : l ≤ l)] at h7a
+  simp [h5 l (by simp)] at h7a
 
   have h8 : ∀ i ∈ range l, x i ≠ 0 := by
     contrapose! h6
@@ -180,8 +179,16 @@ theorem new_inequality (n l : ℕ) (s : ℕ → ℝ) (r : ℝ) (h1: attainable n
     linarith [h13 k hk]
   . positivity
   . positivity
+  -- suggest_tactics works here, but aesop's normalization times out.
   apply prod_pos
-  exact h13
+  /-
+  Original:
+    exact h13
+
+  LLM-aesop:
+  -/
+  intro i a
+  simp_all only [ge_iff_le, gt_iff_lt, abs_pos, ne_eq, mem_range, AbsoluteValue.pos_iff, not_false_eq_true]
 
 /--
 If $(s_0,\dots s_n)$ is attainable, r>0, and 1 ≤ l ≤ n, then

@@ -27,8 +27,16 @@ lemma monotone_decr {n : ℕ} {f : ℕ → ℝ} (h : ∀ k ∈ range n, f (k+1) 
   induction' l with m hm
   . simp
   have hm2 : m ∈ range (n+1) := by
-    simp
-    simp [Nat.succ_eq_add_one] at hl
+    /-
+    Original:
+      simp
+      simp [Nat.succ_eq_add_one] at hl
+      linarith
+
+    LLM-aesop:
+    -/
+    rename_i hl_1
+    simp_all only [mem_range]
     linarith
   have hm3 := hm hm2
   clear hm hm2
@@ -36,14 +44,25 @@ lemma monotone_decr {n : ℕ} {f : ℕ → ℝ} (h : ∀ k ∈ range n, f (k+1) 
   rcases em (k = m+1) with hk2 | hk2
   . rw [Nat.succ_eq_add_one, hk2]
   simp [Nat.succ_eq_add_one] at hk
-  have hk3 : k ≤ m + 1 := by linarith [hk]
-  have hk4 : k < m + 1 := by contrapose! hk2; linarith
+  have hk3 : k ≤ m + 1 := by
+    /-
+    Original:
+      linarith [hk]
+
+    LLM-aesop:
+    -/
+    rename_i hl_1
+    simp_all only [mem_range]
+    linarith
+  have hk4 : k < m + 1 := by
+    contrapose! hk2; linarith
   simp at hm3
   have hk5 := hm3 k hk4
   rw [Nat.succ_eq_add_one]
   simp [Nat.succ_eq_add_one] at hl
   simp at h
   have hk7 := h m hl
+  -- suggest_tactics works here. Why?
   linarith
 
 theorem maclaurin (n k l : ℕ) (s : ℕ → ℝ) (h1 : attainable n s) (h2 : ∀ i ∈ range (n+1), 0 < s i) (h3 : l ∈ range (n+1)) (h4 : k ∈ range (l+1)) (h5 : k > 0): (s l)^((1:ℝ)/l) ≤ (s k)^((1:ℝ)/k) := by
@@ -173,8 +192,16 @@ theorem maclaurin (n k l : ℕ) (s : ℕ → ℝ) (h1 : attainable n s) (h2 : �
   rw [hs'', hds k hw, hds (k+1) hw', prod_range_succ, mul_pow, pow_succ, <- hds k hw]
   rw [mul_comm (s k)]
   gcongr
-  rw [hds k hw]
-  assumption
+  /-
+  Original:
+    rw [hds k hw]
+    assumption
+
+  LLM-aesop:
+  -/
+  rename_i k_1
+  simp_all only [mem_range, ge_iff_le, prod_div_distrib, add_lt_add_iff_right, add_lt_add_iff_left,
+    lt_add_iff_pos_right, div_pow, gt_iff_lt, Nat.cast_pos, ne_eq, Nat.cast_eq_zero]
 
 
 -- Now we develop the limiting argument to extend Maclaurin's inequality to non-negative variables

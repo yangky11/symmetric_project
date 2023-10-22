@@ -24,11 +24,24 @@ def attainable (n : ℕ) (s : ℕ → ℝ) : Prop := ∃ (x : ℕ → ℝ), ∀ 
 lemma attainable_zero_eq_one (n : ℕ) (s : ℕ → ℝ) : attainable n s → s 0 = 1 := by
   intro h
   rcases h with ⟨ x, hx ⟩
-  have h0: 0 ≤ n := by linarith
+  have h0: 0 ≤ n := by
+    /-
+    Original:
+      linarith
+
+    LLM-aesop:
+    -/
+    simp_all only [_root_.zero_le]
   have esymm0 := hx 0 h0
-  simp [esymm_zero_eq_one] at esymm0
-  symm
-  assumption
+  /-
+  Original:
+    simp [esymm_zero_eq_one] at esymm0
+    symm
+    assumption
+
+  LLM-aesop:
+  -/
+  simp_all only [_root_.zero_le, esymm_zero_eq_one, choose_zero_right, cast_one, mul_one]
 
 /- An attainable sequence can be scaled. [Lemma 2.1(i) in the paper] -/
 lemma attainable_scaling (n : ℕ) (s : ℕ → ℝ) (a : ℝ) : attainable n s → attainable n (fun k => (a ^ k) * (s k) ) := by
@@ -38,7 +51,14 @@ lemma attainable_scaling (n : ℕ) (s : ℕ → ℝ) (a : ℝ) : attainable n s 
   intro k hk
   simp
   rw [esymm_mul]
-  simp [hx k hk]
+  /-
+  Original:
+    simp [hx k hk]
+    ring
+
+  LLM-aesop:
+  -/
+  simp_all only
   ring
 
 /-- An attainable sequence can be reflected if its final entry is non-zero. [Lemma 2.1(ii) in the paper]-/
@@ -48,14 +68,22 @@ lemma attainable_reflect (n : ℕ) (s : ℕ → ℝ) : attainable n s → s n �
   use 1/x
   intro k hk
   rw [esymm_reflect]
-  have hnk : n-k ≤ n := sub_le ..
-  rw [hx (n-k) hnk, hx n le_rfl]
-  simp [choose_symm hk]
-  ring
-  . contrapose! hn
-    simpa [hx n le_rfl] using hn
-  assumption
+  /-
+  Original:
+    have hnk : n-k ≤ n := sub_le ..
+    rw [hx (n-k) hnk, hx n le_rfl]
+    simp [choose_symm hk]
+    ring
+    . contrapose! hn
+      simpa [hx n le_rfl] using hn
+    assumption
 
+  LLM-aesop:
+  -/
+  simp_all only [ne_eq, ge_iff_le, tsub_le_iff_right, le_add_iff_nonneg_right, _root_.zero_le, choose_symm, le_refl, choose_self, cast_one, mul_one]
+  field_simp
+  simp_all only [ne_eq, le_refl, choose_self, cast_one, mul_one, not_false_eq_true]
+  simp_all only [ne_eq]
 
 /- If a polynomial $\sum_{k=0}^n a_k z^{n-k}$ vanishes, then all its coefficients vanish.
 -/
@@ -65,6 +93,7 @@ lemma compare_coeff (n : ℕ) (a: ℕ → ℝ) (h: ∑ k in range (n + 1), monom
   clear h
   rw [finset_sum_coeff, coeff_zero] at h'
   let f : ℕ → ℝ := fun k => if k = m then a m else 0
+
   have h'' : ∑ b in range (n+1), f b = 0 := by
     rw [<- h']
     apply sum_congr rfl
@@ -73,25 +102,57 @@ lemma compare_coeff (n : ℕ) (a: ℕ → ℝ) (h: ∑ k in range (n + 1), monom
     simp
     have iff : b = m ↔ n-b = n-m := by
       constructor
-      . intro bm
-        simp [bm]
+      . /-
+        Original:
+          intro bm
+          simp [bm]
+
+        LLM-aesop:
+        -/
+        intro a_1
+        aesop_subst a_1
+        simp_all only [ge_iff_le, mem_range]
       intro nbm
       have hb' : b ≤ n := by simp at hb; linarith
       have hm' := Nat.sub_add_cancel hm
       have hb'' := Nat.sub_add_cancel hb'
-      linarith [nbm, hm', hb'']
+      /-
+      Original:
+        linarith [nbm, hm', hb'']
 
-    rcases em (b=m) with bm | bm
-    . have nbm : n-b = n-m := by rw [<-iff]; assumption
+      LLM-aesop:
+      -/
+      simp_all only [ge_iff_le, mem_range]
+      linarith
+
+    /-
+    Original:
+      rcases em (b=m) with bm | bm
+      . have nbm : n-b = n-m := by rw [<-iff]; assumption
+        simp [bm, nbm]
+      have nbm : n-b ≠ n-m := by contrapose! bm; rw [iff]; assumption
       simp [bm, nbm]
-    have nbm : n-b ≠ n-m := by contrapose! bm; rw [iff]; assumption
-    simp [bm, nbm]
-  have h''': m ∈ range (n+1) := by
-    simp
-    linarith
-  rw [<- add_sum_erase _ _ h'''] at h''
-  simp at h''
-  assumption
+
+    LLM-aesop:
+    -/
+    simp_all only [ge_iff_le, mem_range]
+    split
+    · simp_all only [ge_iff_le, iff_true]
+    · simp_all only [ge_iff_le, iff_false]
+
+  /-
+  Original:
+    have h''': m ∈ range (n+1) := by
+      simp
+      linarith
+    rw [<- add_sum_erase _ _ h'''] at h''
+    simp at h''
+    assumption
+
+  LLM-aesop:
+  -/
+  simp_all only [ge_iff_le, sum_ite_eq', mem_range, ite_eq_right_iff]
+  exact h'' (Nat.lt_succ_of_le hm)
 
 /- the hardest part (iii) of [Lemma 2.1 of the paper]: if a sequence is attainable, then so is its truncation.-/
 lemma attainable_truncate (n : ℕ) (l : ℕ) (s : ℕ → ℝ) (hln : l ≤ n) : attainable n s → attainable l s := by
@@ -214,18 +275,46 @@ lemma attainable_truncate (n : ℕ) (l : ℕ) (s : ℕ → ℝ) (hln : l ≤ n) 
       simp
     rw [h5, mul_assoc] at h4
     have h6 : ((n:ℝ) + 1) ≠ 0 := by
-      have : n + 1 ≥ 1 := by linarith
+      have : n + 1 ≥ 1 := by
+        /-
+        Original:
+          linarith
+
+        LLM-aesop:
+        -/
+        simp_all only [ge_iff_le, tsub_le_iff_right, odd_iff_not_even, mul_eq_mul_left_iff, le_add_iff_nonneg_left, _root_.zero_le]
       by_contra hn
       have : (n:ℝ) + 1 ≥ 1 := by
         simp [this]
       linarith
-    have h7 := mul_left_cancel₀ h6 h4
-    clear h4 h5 h6
-    rw [<- h7]
-    ring
+    /-
+    Original:
+      have h7 := mul_left_cancel₀ h6 h4
+      clear h4 h5 h6
+      rw [<- h7]
+      ring
+
+    LLM-aesop:-/
+    simp_all only [ge_iff_le, tsub_le_iff_right, odd_iff_not_even, mul_eq_mul_left_iff, or_false, ne_eq]
+    rw [mul_comm, h4]
+
 
   have hln'' : l = succ n := by
-    have : l ≤ n ∨ l = succ n := of_le_succ hln
+    /-
+    Original:
+      have : l ≤ n ∨ l = succ n := of_le_succ hln
+      linarith
+    LLM-aesop:
+    -/
+    simp_all only [gt_iff_lt]
     linarith
-  rw [hln'']
-  tauto
+
+  /-
+  Original:
+    rw [hln'']
+    tauto
+  LLM-aesop:
+  -/
+  intro a
+  aesop_subst hln''
+  simp_all only [le_refl, gt_iff_lt, lt_succ_self]
