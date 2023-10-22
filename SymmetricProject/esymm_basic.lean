@@ -43,11 +43,13 @@ lemma esymm_zero_eq_one (n : ℕ) (x : ℕ → ℝ) : esymm n 0 x = 1 := by
   simp [set_binom]
 
 /-- S_{n,k}(x)=0 if k>n -/
+@[simp]
 lemma esymm_eq_zero {n k : ℕ} (x : ℕ → ℝ) (h : n < k) : esymm n k x = 0 := by
   simp [esymm, set_binom_empty h]
 
 
 /-- S_{n,n}(x) = \prod_{i=0}^{n-1} x_i -/
+@[simp]
 lemma esymm_prod (n : ℕ) (x: ℕ → ℝ): esymm n n x = ∏ i in range n, x i := by
   /-
   Original:
@@ -74,13 +76,14 @@ $$ S_{n,k}(1/x) = S_{n,n-k}(x) / S_{n,n}(x) $$
 for all 0 ≤ k ≤ n
 -/
 lemma esymm_reflect (n : ℕ) (k : ℕ) (x : ℕ → ℝ) (h : esymm n n x ≠ 0) (hkn : k ≤ n) : esymm n k (1 / x) = esymm n (n-k) x / esymm n n x := by
-  field_simp
-  rw [esymm_prod, esymm, esymm, sum_mul, ← sdiff_binom_image n k hkn, sum_image (sdiff_binom_inj n k)]
+  simp at h; field_simp
+  rw [esymm, esymm, sum_mul, ← sdiff_binom_image n k hkn, sum_image (sdiff_binom_inj n k)]
   apply sum_congr rfl
   intro A hA
   have hAn := set_binom_subset hA
   replace hA : ∀ i ∈ A, x i ≠ 0 := by
-    rw [esymm_prod, prod_ne_zero_iff] at h
+    contrapose! h
+    rw [prod_eq_zero_iff]
     tauto
   calc (∏ i in A, (1 / x) i) * (∏ i in range n, x i)
     = (∏ i in A, (1 / x) i) * ((∏ i in range n \ A, x i) * ∏ i in A,  x i) := by rw [prod_sdiff hAn]
@@ -108,7 +111,8 @@ theorem esymm_pascal (n : ℕ) (k : ℕ) (x : ℕ → ℝ) :
   rw [mul_comm]
 
 /-- S_{n,1}(x) = \sum_{i=0}^{n-1} x_i -/
-lemma esymm_sum (n : ℕ) (x: ℕ → ℝ): esymm n 1 x = ∑ i in range n, x i := by
+@[simp]
+lemma esymm_sum {n : ℕ} {x: ℕ → ℝ}: esymm n 1 x = ∑ i in range n, x i := by
   induction' n with m ih
   . exact esymm_eq_zero x (show 1 > 0 by norm_num)
   · simp [ih, esymm_pascal, sum_range_succ]
